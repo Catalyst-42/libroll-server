@@ -8,6 +8,10 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
+app.get('/'), (req, res) => {
+  res.send("I'm fine.");
+}
+
 // API для работы с книгами
 
 // Получить все книги
@@ -186,3 +190,5 @@ const PORT = 5000;
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+
+module.exports = app;
