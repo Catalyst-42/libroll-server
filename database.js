@@ -3,7 +3,7 @@ import { Database } from '@sqlitecloud/drivers';
 
 let db;
 
-if (process.env.LOCAL === 'true') {
+if (process.env.LOCAL === 'true' || process.env.LOCAL === undefined) {
   db = new sqlite3.Database('./library.db');
 
   db.serialize(() => {
@@ -39,6 +39,8 @@ if (process.env.LOCAL === 'true') {
         FOREIGN KEY (user_id) REFERENCES Users(id)
       );
     `);
+
+    console.log('Connected to the local database');
   });
 } else {
   db = new Database(process.env.DATABASE_URL, (error) => {
