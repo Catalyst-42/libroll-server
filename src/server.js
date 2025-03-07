@@ -14,6 +14,11 @@ const secret_key = process.env.SECRET_KEY;
 app.use(cors());
 app.use(express.json());
 
+// Test
+app.post('/post', (req, res) => { 
+  res.json("Posted fineously!");
+})
+
 // Update passwords to hashed
 // updatePasswordsToHashed();
 
