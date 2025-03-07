@@ -40,6 +40,15 @@ if (process.env.LOCAL === 'true' || process.env.LOCAL === undefined) {
       );
     `);
 
+    // Superusers
+    db.run(`
+      CREATE TABLE IF NOT EXISTS Superusers (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        username TEXT NOT NULL UNIQUE,
+        password TEXT NOT NULL
+      )
+    `);
+
     console.log('Connected to the local database');
   });
 } else {
