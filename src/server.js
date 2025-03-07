@@ -1,26 +1,15 @@
 import express from 'express';
-// import bodyParser from 'body-parser';
 import cors from 'cors';
 import db from './database.js';
 import authRoutes from './routes/auth.js';
 import bookRoutes from './routes/books.js';
 import userRoutes from './routes/users.js';
 import borrowedBookRoutes from './routes/borrowedBooks.js';
-import { authenticateJWT, updatePasswordsToHashed } from './utils.js';
 
 const app = express();
-const secret_key = process.env.SECRET_KEY;
 
 app.use(cors());
 app.use(express.json());
-
-// Test
-app.post('/post', (req, res) => { 
-  res.json("Posted fineously!");
-})
-
-// Update passwords to hashed
-// updatePasswordsToHashed();
 
 // Home
 app.get('/', (req, res) => {
