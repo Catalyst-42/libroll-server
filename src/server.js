@@ -1,5 +1,5 @@
 import express from 'express';
-import bodyParser from 'body-parser';
+// import bodyParser from 'body-parser';
 import cors from 'cors';
 import db from './database.js';
 import authRoutes from './routes/auth.js';
@@ -12,7 +12,7 @@ const app = express();
 const secret_key = process.env.SECRET_KEY;
 
 app.use(cors());
-app.use(bodyParser.json());
+app.use(express.json());
 
 // Update passwords to hashed
 // updatePasswordsToHashed();
