@@ -32,6 +32,23 @@ router.post('/', authenticateJWT, (req, res) => {
   );
 });
 
+// Update user
+router.put('/:id', authenticateJWT, (req, res) => {
+  const { id } = req.params;
+  const { first_name, last_name } = req.body;
+  db.run(
+    'UPDATE Users SET first_name = ?, last_name = ? WHERE id = ?',
+    [first_name, last_name, id],
+    function (err) {
+      if (err) {
+        res.status(500).json({ error: err.message });
+        return;
+      }
+      res.status(200).json({ updated: this.changes });
+    }
+  );
+});
+
 // Delete user
 router.delete('/:id', authenticateJWT, (req, res) => {
   const { id } = req.params;

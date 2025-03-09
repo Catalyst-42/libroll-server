@@ -16,7 +16,7 @@ app.use(express.json());
 
 // Home
 app.get('/', (req, res) => {
-  res.json({message: "I'm fine... i guess."});
+  res.json({message: "Libroll server is alive!"});
 });
 
 // Stats

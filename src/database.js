@@ -5,7 +5,7 @@ let db;
 
 // Use local database or remote
 if (process.env.LOCAL === 'true' || process.env.LOCAL === undefined) {
-  db = new sqlite3.Database('./library.db');
+  db = new sqlite3.Database('./databases/libroll.db');
 
   db.serialize(() => {
     // Books

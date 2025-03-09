@@ -8,6 +8,11 @@ import { authenticateJWT } from '../utils.js';
 const router = express.Router();
 const secret_key = process.env.SECRET_KEY;
 
+// Check secure routes
+router.get('/access-check', authenticateJWT, (req, res) => {
+  res.json({ message: 'Today is a good day, cuz jwt works fine!' });
+});
+
 // Register
 router.post('/register', async (req, res) => {
   const { username, password } = req.body;
@@ -23,8 +28,7 @@ router.post('/register', async (req, res) => {
 
       const token = jwt.sign(
         { id: this.lastID, username },
-        secret_key,
-        { expiresIn: '12h' }
+        secret_key
       );
 
       res.status(201).json({ id: this.lastID, token });
@@ -51,7 +55,6 @@ router.post('/login', async (req, res) => {
       const token = jwt.sign(
         { id: user.id, username: user.username },
         secret_key,
-        { expiresIn: '12h' }
       );
       res.json({ token });
     } else {
@@ -60,10 +63,6 @@ router.post('/login', async (req, res) => {
   } catch (error) {
     res.status(500).send('Error during login: ' + error.message);
   }
-});
-
-router.get('/access-check', authenticateJWT, (req, res) => {
-  res.json({ message: 'Protecred route works fine... i guess.' });
 });
 
 export default router;

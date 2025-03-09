@@ -63,6 +63,24 @@ router.post('/', authenticateJWT, (req, res) => {
   });
 });
 
+// Update borrow details
+router.put('/:id', authenticateJWT, (req, res) => {
+  const { id } = req.params;
+  const { book_id, user_id, borrow_date, return_date, status } = req.body;
+
+  db.run(
+    'UPDATE Borrows SET book_id = ?, user_id = ?, borrow_date = ?, return_date = ?, status = ? WHERE id = ?',
+    [book_id, user_id, borrow_date, return_date, status, id],
+    function (err) {
+      if (err) {
+        res.status(500).json({ error: err.message });
+        return;
+      }
+      res.status(200).json({ updated: this.changes });
+    }
+  );
+});
+
 // Return book
 router.put('/:id/return', authenticateJWT, (req, res) => {
   const { id } = req.params;
@@ -72,10 +90,6 @@ router.put('/:id/return', authenticateJWT, (req, res) => {
     function (err) {
       if (err) {
         res.status(500).json({ error: err.message });
-        return;
-      }
-      if (this.changes === 0) {
-        res.status(404).json({ error: 'Record not found or book already returned' });
         return;
       }
       res.status(200).json({ updated: this.changes });
