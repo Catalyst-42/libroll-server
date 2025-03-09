@@ -7,7 +7,7 @@ const router = express.Router();
 
 // Get all borrowed books
 router.get('/', (req, res) => {
-  db.all('SELECT * FROM Borrows', (err, rows) => {
+  db.all('SELECT * FROM Borrows ORDER BY id DESC', (err, rows) => {
     if (err) {
       res.status(500).json({ error: err.message });
       return;
