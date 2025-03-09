@@ -1,5 +1,6 @@
-import jwt from 'jsonwebtoken';
 import bcrypt from 'bcrypt';
+import jwt from 'jsonwebtoken';
+
 import db from './database.js';
 
 const secret_key = process.env.SECRET_KEY;

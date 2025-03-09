@@ -1,4 +1,5 @@
 import express from 'express';
+
 import db from '../database.js';
 import { authenticateJWT } from '../utils.js';
 

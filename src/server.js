@@ -1,10 +1,13 @@
-import express from 'express';
 import cors from 'cors';
+import express from 'express';
+
 import db from './database.js';
+
 import authRoutes from './routes/auth.js';
+
 import bookRoutes from './routes/books.js';
 import userRoutes from './routes/users.js';
-import borrowedBookRoutes from './routes/borrowedBooks.js';
+import borrowRoutes from './routes/borrows.js';
 
 const app = express();
 
@@ -37,25 +40,25 @@ app.get('/stats', async (req, res) => {
       });
     });
 
-    // Borrowed books
-    stats.borrowedBooksCount = await new Promise((resolve, reject) => {
-      db.get('SELECT COUNT(*) as count FROM BorrowedBooks', (err, row) => {
+    // Borrows
+    stats.borrowsCount = await new Promise((resolve, reject) => {
+      db.get('SELECT COUNT(*) as count FROM Borrows', (err, row) => {
         if (err) reject(err);
         else resolve(row.count);
       });
     });
 
     // Unreturned books
-    stats.activeBorrowedBooksCount = await new Promise((resolve, reject) => {
-      db.get('SELECT COUNT(*) as count FROM BorrowedBooks WHERE status = "active"', (err, row) => {
+    stats.activeBorrowsCount = await new Promise((resolve, reject) => {
+      db.get('SELECT COUNT(*) as count FROM Borrows WHERE status = "active"', (err, row) => {
         if (err) reject(err);
         else resolve(row.count);
       });
     });
 
     // Returned books
-    stats.inactiveBorrowedBooksCount = await new Promise((resolve, reject) => {
-      db.get('SELECT COUNT(*) as count FROM BorrowedBooks WHERE status = "returned"', (err, row) => {
+    stats.inactiveBorrowsCount = await new Promise((resolve, reject) => {
+      db.get('SELECT COUNT(*) as count FROM Borrows WHERE status = "returned"', (err, row) => {
         if (err) reject(err);
         else resolve(row.count);
       });
@@ -67,13 +70,14 @@ app.get('/stats', async (req, res) => {
   }
 });
 
-// Routes
+// Connect routes
 app.use('/auth', authRoutes);
 app.use('/books', bookRoutes);
 app.use('/users', userRoutes);
-app.use('/borrowed-books', borrowedBookRoutes);
+app.use('/borrows', borrowRoutes);
 
-if (process.env.LOCAL == 'true') {
+// Run server on local, or export for Vercel
+if (process.env.LOCAL == 'true' || process.env.LOCAL === undefined) {
   const PORT = 5000;
   app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);

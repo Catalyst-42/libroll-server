@@ -1,8 +1,9 @@
-import sqlite3 from 'sqlite3';
 import { Database } from '@sqlitecloud/drivers';
+import sqlite3 from 'sqlite3';
 
 let db;
 
+// Use local database or remote
 if (process.env.LOCAL === 'true' || process.env.LOCAL === undefined) {
   db = new sqlite3.Database('./library.db');
 
@@ -26,9 +27,9 @@ if (process.env.LOCAL === 'true' || process.env.LOCAL === undefined) {
       )
     `);
   
-    // BorrowedBooks
+    // Borrows
     db.run(`
-      CREATE TABLE IF NOT EXISTS BorrowedBooks (
+      CREATE TABLE IF NOT EXISTS Borrows (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         book_id INTEGER NOT NULL,
         user_id INTEGER NOT NULL,

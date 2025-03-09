@@ -1,6 +1,6 @@
+import bcrypt from 'bcrypt';
 import express from 'express';
 import jwt from 'jsonwebtoken';
-import bcrypt from 'bcrypt';
 
 import db from '../database.js';
 import { authenticateJWT } from '../utils.js';
