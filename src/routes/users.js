@@ -7,7 +7,7 @@ const router = express.Router();
 
 // Get all users
 router.get('/', (req, res) => {
-  db.all('SELECT * FROM Users', (err, rows) => {
+  db.all('SELECT * FROM Users ORDER BY id DESC', (err, rows) => {
     if (err) {
       res.status(500).json({ error: err.message });
       return;

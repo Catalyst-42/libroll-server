@@ -7,7 +7,7 @@ const router = express.Router();
 
 // Get all books
 router.get('/', (req, res) => {
-  db.all('SELECT * FROM Books', (err, rows) => {
+  db.all('SELECT * FROM Books ORDER BY id DESC', (err, rows) => {
     if (err) {
       res.status(500).json({ error: err.message });
       return;
