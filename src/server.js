@@ -19,6 +19,11 @@ app.get('/', (req, res) => {
   res.json({message: "Libroll server is alive!"});
 });
 
+// Health
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok' });
+});
+
 // Stats
 app.get('/stats', async (req, res) => {
   try {
@@ -77,7 +82,7 @@ app.use('/users', userRoutes);
 app.use('/borrows', borrowRoutes);
 
 // Run server on local, or export for Vercel
-if (process.env.LOCAL == 'true' || process.env.LOCAL === undefined) {
+if (process.env.VERCEL == 'false' || process.env.LOCAL === undefined) {
   const PORT = 5000;
   app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
