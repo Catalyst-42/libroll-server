@@ -3,6 +3,22 @@ import sqlite3 from 'sqlite3';
 
 let db;
 
+const connectToRemoteDatabase = (retries = 5) => {
+  db = new Database(process.env.DATABASE_URL, (error) => {
+    if (error) {
+      console.error('Error during the connection', error);
+      if (retries > 0) {
+        console.log(`Retrying connection (${retries} attempts left)...`);
+        setTimeout(() => connectToRemoteDatabase(retries - 1), 1000);
+      } else {
+        console.error('Failed to connect to the remote database after multiple attempts.');
+      }
+    } else {
+      console.log('Connected to the remote database');
+    }
+  });
+};
+
 // Use local database or remote
 if (process.env.LOCAL === 'true' || process.env.LOCAL === undefined) {
   db = new sqlite3.Database('./databases/libroll.db');
@@ -53,13 +69,7 @@ if (process.env.LOCAL === 'true' || process.env.LOCAL === undefined) {
     console.log('Connected to the local database');
   });
 } else {
-  db = new Database(process.env.DATABASE_URL, (error) => {
-    if (error) {
-      console.log('Error during the connection', error);
-    } else {
-      console.log('Connected to the remote database');
-    }
-  });
+  connectToRemoteDatabase();
 }
 
 export default db;
