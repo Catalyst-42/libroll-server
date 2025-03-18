@@ -1,5 +1,6 @@
 import { Database } from '@sqlitecloud/drivers';
 import sqlite3 from 'sqlite3';
+import tls from 'tls';
 
 let db;
 
@@ -53,12 +54,21 @@ if (process.env.LOCAL === 'true' || process.env.LOCAL === undefined) {
     console.log('Connected to the local database');
   });
 } else {
-  db = new Database(process.env.DATABASE_URL, (error) => {
-    if (error) {
-      console.log('Error during the connection', error);
-    } else {
+  const options = {
+    rejectUnauthorized: false, // Accept self-signed certificates
+  };
+
+  const socket = tls.connect(8860, 'cvmpsszthz.g5.sqlite.cloud', options, () => {
+    if (socket.authorized) {
       console.log('Connected to the remote database');
+      db = new Database(process.env.DATABASE_URL, { socket });
+    } else {
+      console.log('Connection not authorized:', socket.authorizationError);
     }
+  });
+
+  socket.on('error', (error) => {
+    console.log('Error during the connection', error);
   });
 }
 
