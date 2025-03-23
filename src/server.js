@@ -1,10 +1,9 @@
 import cors from 'cors';
 import express from 'express';
 
-import db from './database.js';
+import getDb from './database.js';
 
 import authRoutes from './routes/auth.js';
-
 import bookRoutes from './routes/books.js';
 import userRoutes from './routes/users.js';
 import borrowRoutes from './routes/borrows.js';
@@ -28,6 +27,7 @@ app.get('/health', (req, res) => {
 app.get('/stats', async (req, res) => {
   try {
     const stats = {};
+    const db = getDb();
 
     // Book count
     stats.booksCount = await new Promise((resolve, reject) => {

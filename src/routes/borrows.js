@@ -1,12 +1,13 @@
 import express from 'express';
 
-import db from '../database.js';
+import getDb from '../database.js';
 import { authenticateJWT } from '../utils.js';
 
 const router = express.Router();
 
 // Get all borrowed books
 router.get('/', (req, res) => {
+  const db = getDb();
   db.all('SELECT * FROM Borrows ORDER BY id DESC', (err, rows) => {
     if (err) {
       res.status(500).json({ error: err.message });
@@ -19,6 +20,7 @@ router.get('/', (req, res) => {
 // Borrow book
 router.post('/', authenticateJWT, (req, res) => {
   const { book_id, user_id, borrow_date, return_date } = req.body;
+  const db = getDb();
 
   // Check availability
   db.get('SELECT total_count FROM Books WHERE id = ?', [book_id], (err, book) => {
@@ -67,7 +69,7 @@ router.post('/', authenticateJWT, (req, res) => {
 router.put('/:id', authenticateJWT, (req, res) => {
   const { id } = req.params;
   const { book_id, user_id, borrow_date, return_date, status } = req.body;
-
+  const db = getDb();
   db.run(
     'UPDATE Borrows SET book_id = ?, user_id = ?, borrow_date = ?, return_date = ?, status = ? WHERE id = ?',
     [book_id, user_id, borrow_date, return_date, status, id],
@@ -84,6 +86,7 @@ router.put('/:id', authenticateJWT, (req, res) => {
 // Return book
 router.put('/:id/return', authenticateJWT, (req, res) => {
   const { id } = req.params;
+  const db = getDb();
   db.run(
     'UPDATE Borrows SET status = "returned" WHERE id = ?',
     [id],
@@ -100,6 +103,7 @@ router.put('/:id/return', authenticateJWT, (req, res) => {
 // Delete borrowed book
 router.delete('/:id', authenticateJWT, (req, res) => {
   const { id } = req.params;
+  const db = getDb();
   db.run('DELETE FROM Borrows WHERE id = ?', [id], function (err) {
     if (err) {
       res.status(500).json({ error: err.message });

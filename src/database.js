@@ -1,15 +1,14 @@
 import { Database } from '@sqlitecloud/drivers';
 import sqlite3 from 'sqlite3';
 
-let db;
+let localDb;
 
-// Use local database or remote
 if (process.env.LOCAL === 'true' || process.env.LOCAL === undefined) {
-  db = new sqlite3.Database('./databases/libroll.db');
+  localDb = new sqlite3.Database('./databases/libroll.db');
 
-  db.serialize(() => {
+  localDb.serialize(() => {
     // Books
-    db.run(`
+    localDb.run(`
       CREATE TABLE IF NOT EXISTS Books (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         title TEXT NOT NULL,
@@ -19,7 +18,7 @@ if (process.env.LOCAL === 'true' || process.env.LOCAL === undefined) {
     `);
   
     // Users
-    db.run(`
+    localDb.run(`
       CREATE TABLE IF NOT EXISTS Users (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         first_name TEXT NOT NULL,
@@ -28,7 +27,7 @@ if (process.env.LOCAL === 'true' || process.env.LOCAL === undefined) {
     `);
   
     // Borrows
-    db.run(`
+    localDb.run(`
       CREATE TABLE IF NOT EXISTS Borrows (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         book_id INTEGER NOT NULL,
@@ -42,7 +41,7 @@ if (process.env.LOCAL === 'true' || process.env.LOCAL === undefined) {
     `);
 
     // Superusers
-    db.run(`
+    localDb.run(`
       CREATE TABLE IF NOT EXISTS Superusers (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         username TEXT NOT NULL UNIQUE,
@@ -52,14 +51,20 @@ if (process.env.LOCAL === 'true' || process.env.LOCAL === undefined) {
 
     console.log('Connected to the local database');
   });
-} else {
-  db = new Database(process.env.DATABASE_URL, (error) => {
-    if (error) {
-      console.log('Error during the connection', error);
-    } else {
-      console.log('Connected to the remote database');
-    }
-  });
 }
 
-export default db;
+export const getDb = () => {
+  if (process.env.LOCAL !== 'true' && process.env.LOCAL !== undefined) {
+    return new Database(process.env.DATABASE_URL, (error) => {
+      if (error) {
+        console.log('Error during the connection', error);
+      } else {
+        console.log('Connected to the remote database');
+      }
+    });
+  }
+
+  return localDb;
+};
+
+export default getDb;

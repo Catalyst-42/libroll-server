@@ -2,7 +2,7 @@ import bcrypt from 'bcrypt';
 import express from 'express';
 import jwt from 'jsonwebtoken';
 
-import db from '../database.js';
+import getDb from '../database.js';
 import { authenticateJWT } from '../utils.js';
 
 const router = express.Router();
@@ -17,6 +17,7 @@ router.get('/access-check', authenticateJWT, (req, res) => {
 router.post('/register', async (req, res) => {
   const { username, password } = req.body;
   const hashedPassword = await bcrypt.hash(password, 10);
+  const db = getDb();
   db.run(
     'INSERT INTO Superusers (username, password) VALUES (?, ?)',
     [username, hashedPassword],
@@ -39,6 +40,7 @@ router.post('/register', async (req, res) => {
 // Login
 router.post('/login', async (req, res) => {
   const { username, password } = req.body;
+  const db = getDb();
   try {
     const user = await new Promise((resolve, reject) => {
       db.get(

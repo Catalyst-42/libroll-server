@@ -1,12 +1,13 @@
 import express from 'express';
 
-import db from '../database.js';
+import getDb from '../database.js';
 import { authenticateJWT } from '../utils.js';
 
 const router = express.Router();
 
 // Get all books
 router.get('/', (req, res) => {
+  const db = getDb();
   db.all('SELECT * FROM Books ORDER BY id DESC', (err, rows) => {
     if (err) {
       res.status(500).json({ error: err.message });
@@ -19,6 +20,7 @@ router.get('/', (req, res) => {
 // Add new book
 router.post('/', authenticateJWT, (req, res) => {
   const { title, author, total_count } = req.body;
+  const db = getDb();
   db.run(
     'INSERT INTO Books (title, author, total_count) VALUES (?, ?, ?)',
     [title, author, total_count],
@@ -36,6 +38,7 @@ router.post('/', authenticateJWT, (req, res) => {
 router.put('/:id', authenticateJWT, (req, res) => {
   const { id } = req.params;
   const { title, author, total_count } = req.body;
+  const db = getDb();
   db.run(
     'UPDATE Books SET title = ?, author = ?, total_count = ? WHERE id = ?',
     [title, author, total_count, id],
@@ -52,6 +55,7 @@ router.put('/:id', authenticateJWT, (req, res) => {
 // Delete book
 router.delete('/:id', authenticateJWT, (req, res) => {
   const { id } = req.params;
+  const db = getDb();
   db.run('DELETE FROM Books WHERE id = ?', [id], function (err) {
     if (err) {
       res.status(500).json({ error: err.message });
