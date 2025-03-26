@@ -2,6 +2,30 @@ import { Database } from '@sqlitecloud/drivers';
 import sqlite3 from 'sqlite3';
 
 let localDb;
+let remoteDb;
+
+const connectRemoteDb = () => {
+  try {
+    remoteDb = new Database(process.env.DATABASE_URL, (error) => {
+      if (error) {
+        console.error('Error during the connection', error);
+      } else {
+        console.log('Connected to the remote database');
+      }
+    });
+
+    remoteDb.on('error', (err) => {
+      console.error('Database connection error:', err);
+      if (err.code === 'ECONNRESET') {
+        console.log('Attempting to reconnect to the remote database...');
+        setTimeout(connectRemoteDb, 5000); // Retry connection after 5 seconds
+      }
+    });
+  } catch (err) {
+    console.error('Unexpected error while connecting to the remote database:', err);
+    setTimeout(connectRemoteDb, 5000); // Retry connection after 5 seconds
+  }
+};
 
 if (process.env.LOCAL === 'true' || process.env.LOCAL === undefined) {
   localDb = new sqlite3.Database('./databases/libroll.db');
@@ -51,17 +75,13 @@ if (process.env.LOCAL === 'true' || process.env.LOCAL === undefined) {
 
     console.log('Connected to the local database');
   });
+} else {
+  connectRemoteDb();
 }
 
 export const getDb = () => {
   if (process.env.LOCAL !== 'true' && process.env.LOCAL !== undefined) {
-    return new Database(process.env.DATABASE_URL, (error) => {
-      if (error) {
-        console.log('Error during the connection', error);
-      } else {
-        console.log('Connected to the remote database');
-      }
-    });
+    return remoteDb;
   }
 
   return localDb;
