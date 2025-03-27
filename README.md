@@ -1,7 +1,6 @@
 # Libroll - server
-Серверная часть приложения для учёта созданных займов книг в библиотеке. Написана на Node.js с использованием Express и SQLite. 
 
-Для удалённой базы данных используется сервис sqlitecloud. 
+Серверная часть приложения для учёта созданных займов книг в библиотеке. Написана на Node.js с использованием Express и PostgreSQL. База данных может быть удалённой или локальной. Для удалённой используется сервис Neon. 
 
 ### Установка и запуск
 
@@ -17,20 +16,25 @@ npm i
 npm start
 ```
 
-В приложении может находится .env файл с конфигурацией базы данных и других параметров:
+### Конфигурация
 
-```.env
+В приложении используется файл `.env` для настройки параметров базы данных:
+
+```
 # JWT
 SECRET_KEY=:(
 
 # Database
 LOCAL=true
-DATABASE_URL=https://example.com/db?apikey=42
+
+LOCAL_DATABASE_URL=postgresql://localhost/libroll
+REMOTE_DATABASE_URL=postgres://user:privatecode.aws.neon.tech/neondb?sslmode=require
 
 # Export app for Vercel
 VERCEL=false
 ```
 
-<!-- TODO:
-- [x] Separate .env settings for local and external database and for vercel
+<!--
+TODO:
+
 -->

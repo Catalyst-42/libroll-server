@@ -18,23 +18,17 @@ router.post('/register', async (req, res) => {
   const { username, password } = req.body;
   const hashedPassword = await bcrypt.hash(password, 10);
   const db = getDb();
-  db.run(
-    'INSERT INTO Superusers (username, password) VALUES (?, ?)',
-    [username, hashedPassword],
-    function (err) {
-      if (err) {
-        res.status(500).json({ error: err.message });
-        return;
-      }
-
-      const token = jwt.sign(
-        { id: this.lastID, username },
-        secret_key
-      );
-
-      res.status(201).json({ id: this.lastID, token });
-    }
-  );
+  try {
+    const [user] = await db`
+      INSERT INTO "Superusers" (username, password) 
+      VALUES (${username}, ${hashedPassword}) 
+      RETURNING id
+    `;
+    const token = jwt.sign({ id: user.id, username }, secret_key);
+    res.status(201).json({ id: user.id, token });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Login
@@ -42,28 +36,17 @@ router.post('/login', async (req, res) => {
   const { username, password } = req.body;
   const db = getDb();
   try {
-    const user = await new Promise((resolve, reject) => {
-      db.get(
-        'SELECT * FROM Superusers WHERE username = ?',
-        [username],
-        (err, user) => {
-          if (err) reject(err);
-          else resolve(user);
-        }
-      );
-    });
-
+    const [user] = await db`
+      SELECT * FROM "Superusers" WHERE username = ${username}
+    `;
     if (user && await bcrypt.compare(password, user.password)) {
-      const token = jwt.sign(
-        { id: user.id, username: user.username },
-        secret_key,
-      );
+      const token = jwt.sign({ id: user.id, username: user.username }, secret_key);
       res.json({ token });
     } else {
       res.status(401).send('Invalid credentials');
     }
-  } catch (error) {
-    res.status(500).send('Error during login: ' + error.message);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
   }
 });
 

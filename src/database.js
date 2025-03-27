@@ -1,90 +1,62 @@
-import { Database } from '@sqlitecloud/drivers';
-import sqlite3 from 'sqlite3';
+import postgres from 'postgres';
 
-let localDb;
-let remoteDb;
+let sql;
 
-const connectRemoteDb = () => {
+const connectionString = process.env.LOCAL === 'true'
+  ? process.env.LOCAL_DATABASE_URL
+  : process.env.REMOTE_DATABASE_URL;
+
+sql = postgres(connectionString, { 
+  ssl: process.env.LOCAL !== 'true'
+});
+
+console.log(`Connected to the ${process.env.LOCAL === 'true' ? 'local' : 'remote'} PostgreSQL database`);
+
+export const getDb = () => sql;
+
+export const initializeDb = async () => {
+  const db = getDb();
   try {
-    remoteDb = new Database(process.env.DATABASE_URL, (error) => {
-      if (error) {
-        console.error('Error during the connection', error);
-      } else {
-        console.log('Connected to the remote database');
-      }
-    });
-
-    remoteDb.on('error', (err) => {
-      console.error('Database connection error:', err);
-      if (err.code === 'ECONNRESET') {
-        console.log('Attempting to reconnect to the remote database...');
-        setTimeout(connectRemoteDb, 5000); // Retry connection after 5 seconds
-      }
-    });
-  } catch (err) {
-    console.error('Unexpected error while connecting to the remote database:', err);
-    setTimeout(connectRemoteDb, 5000); // Retry connection after 5 seconds
-  }
-};
-
-if (process.env.LOCAL === 'true' || process.env.LOCAL === undefined) {
-  localDb = new sqlite3.Database('./databases/libroll.db');
-
-  localDb.serialize(() => {
-    // Books
-    localDb.run(`
-      CREATE TABLE IF NOT EXISTS Books (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        title TEXT NOT NULL,
-        author TEXT NOT NULL,
-        total_count INTEGER NOT NULL
-      )
-    `);
-  
-    // Users
-    localDb.run(`
-      CREATE TABLE IF NOT EXISTS Users (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
+    await db`
+      CREATE TABLE IF NOT EXISTS "Users" (
+        id SERIAL PRIMARY KEY,
         first_name TEXT NOT NULL,
         last_name TEXT NOT NULL
       )
-    `);
-  
-    // Borrows
-    localDb.run(`
-      CREATE TABLE IF NOT EXISTS Borrows (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        book_id INTEGER NOT NULL,
-        user_id INTEGER NOT NULL,
-        borrow_date TEXT NOT NULL,
-        return_date TEXT NOT NULL,
-        status TEXT NOT NULL DEFAULT 'active',
-        FOREIGN KEY (book_id) REFERENCES Books(id),
-        FOREIGN KEY (user_id) REFERENCES Users(id)
-      );
-    `);
+    `;
 
-    // Superusers
-    localDb.run(`
-      CREATE TABLE IF NOT EXISTS Superusers (
-        id INTEGER PRIMARY KEY AUTOINCREMENT,
-        username TEXT NOT NULL UNIQUE,
+    await db`
+      CREATE TABLE IF NOT EXISTS "Books" (
+        id SERIAL PRIMARY KEY,
+        title TEXT NOT NULL,
+        author TEXT NOT NULL,
+        total_count INT NOT NULL
+      )
+    `;
+
+    await db`
+      CREATE TABLE IF NOT EXISTS "Borrows" (
+        id SERIAL PRIMARY KEY,
+        book_id INT REFERENCES "Books"(id),
+        user_id INT REFERENCES "Users"(id),
+        borrow_date DATE NOT NULL,
+        return_date DATE,
+        status TEXT NOT NULL
+      )
+    `;
+
+    await db`
+      CREATE TABLE IF NOT EXISTS "Superusers" (
+        id SERIAL PRIMARY KEY,
+        username TEXT UNIQUE NOT NULL,
         password TEXT NOT NULL
       )
-    `);
+    `;
 
-    console.log('Connected to the local database');
-  });
-} else {
-  connectRemoteDb();
-}
-
-export const getDb = () => {
-  if (process.env.LOCAL !== 'true' && process.env.LOCAL !== undefined) {
-    return remoteDb;
+    console.log('Database initialized successfully');
+  } catch (err) {
+    console.error('Error initializing database:', err.message);
   }
-
-  return localDb;
 };
 
 export default getDb;

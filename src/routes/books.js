@@ -6,63 +6,64 @@ import { authenticateJWT } from '../utils.js';
 const router = express.Router();
 
 // Get all books
-router.get('/', (req, res) => {
+router.get('/', async (req, res) => {
   const db = getDb();
-  db.all('SELECT * FROM Books ORDER BY id DESC', (err, rows) => {
-    if (err) {
-      res.status(500).json({ error: err.message });
-      return;
-    }
-    res.json(rows);
-  });
+  try {
+    const books = await db`SELECT * FROM "Books" ORDER BY id DESC`;
+    res.json(books);
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Add new book
-router.post('/', authenticateJWT, (req, res) => {
+router.post('/', authenticateJWT, async (req, res) => {
   const { title, author, total_count } = req.body;
   const db = getDb();
-  db.run(
-    'INSERT INTO Books (title, author, total_count) VALUES (?, ?, ?)',
-    [title, author, total_count],
-    function (err) {
-      if (err) {
-        res.status(500).json({ error: err.message });
-        return;
-      }
-      res.status(201).json({ id: this.lastID });
-    }
-  );
+  try {
+    const [book] = await db`
+      INSERT INTO "Books" (title, author, total_count) 
+      VALUES (${title}, ${author}, ${total_count}) 
+      RETURNING id
+    `;
+    res.status(201).json({ id: book.id });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Update book
-router.put('/:id', authenticateJWT, (req, res) => {
+router.put('/:id', authenticateJWT, async (req, res) => {
   const { id } = req.params;
   const { title, author, total_count } = req.body;
   const db = getDb();
-  db.run(
-    'UPDATE Books SET title = ?, author = ?, total_count = ? WHERE id = ?',
-    [title, author, total_count, id],
-    function (err) {
-      if (err) {
-        res.status(500).json({ error: err.message });
-        return;
-      }
-      res.status(200).json({ updated: this.changes });
-    }
-  );
+  try {
+    const result = await db`
+      UPDATE "Books" 
+      SET title = ${title}, author = ${author}, total_count = ${total_count} 
+      WHERE id = ${id}
+      RETURNING id
+    `;
+    res.status(200).json({ updated: result.length });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 // Delete book
-router.delete('/:id', authenticateJWT, (req, res) => {
+router.delete('/:id', authenticateJWT, async (req, res) => {
   const { id } = req.params;
   const db = getDb();
-  db.run('DELETE FROM Books WHERE id = ?', [id], function (err) {
-    if (err) {
-      res.status(500).json({ error: err.message });
-      return;
-    }
-    res.status(200).json({ deleted: this.changes });
-  });
+  try {
+    const result = await db`
+      DELETE FROM "Books" 
+      WHERE id = ${id}
+      RETURNING id
+    `;
+    res.status(200).json({ deleted: result.length });
+  } catch (err) {
+    res.status(500).json({ error: err.message });
+  }
 });
 
 export default router;

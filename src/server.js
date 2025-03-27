@@ -1,7 +1,7 @@
 import cors from 'cors';
 import express from 'express';
 
-import getDb from './database.js';
+import getDb, { initializeDb } from './database.js';
 
 import authRoutes from './routes/auth.js';
 import bookRoutes from './routes/books.js';
@@ -29,50 +29,23 @@ app.get('/stats', async (req, res) => {
     const stats = {};
     const db = getDb();
 
-    // Book count
-    stats.booksCount = await new Promise((resolve, reject) => {
-      db.get('SELECT COUNT(*) as count FROM Books', (err, row) => {
-        if (err) reject(err);
-        else resolve(row.count);
-      });
-    });
-
-    // User count
-    stats.usersCount = await new Promise((resolve, reject) => {
-      db.get('SELECT COUNT(*) as count FROM Users', (err, row) => {
-        if (err) reject(err);
-        else resolve(row.count);
-      });
-    });
-
-    // Borrows
-    stats.borrowsCount = await new Promise((resolve, reject) => {
-      db.get('SELECT COUNT(*) as count FROM Borrows', (err, row) => {
-        if (err) reject(err);
-        else resolve(row.count);
-      });
-    });
-
-    // Unreturned books
-    stats.activeBorrowsCount = await new Promise((resolve, reject) => {
-      db.get('SELECT COUNT(*) as count FROM Borrows WHERE status = "active"', (err, row) => {
-        if (err) reject(err);
-        else resolve(row.count);
-      });
-    });
-
-    // Returned books
-    stats.inactiveBorrowsCount = await new Promise((resolve, reject) => {
-      db.get('SELECT COUNT(*) as count FROM Borrows WHERE status = "returned"', (err, row) => {
-        if (err) reject(err);
-        else resolve(row.count);
-      });
-    });
+    stats.booksCount = (await db`SELECT COUNT(*) as count FROM "Books"`)[0].count;
+    stats.usersCount = (await db`SELECT COUNT(*) as count FROM "Users"`)[0].count;
+    stats.borrowsCount = (await db`SELECT COUNT(*) as count FROM "Borrows"`)[0].count;
+    stats.activeBorrowsCount = (await db`SELECT COUNT(*) as count FROM "Borrows" WHERE status = 'active'`)[0].count;
+    stats.inactiveBorrowsCount = (await db`SELECT COUNT(*) as count FROM "Borrows" WHERE status = 'returned'`)[0].count;
 
     res.json(stats);
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
+});
+
+// Initialize database
+initializeDb().then(() => {
+  console.log('Database setup complete');
+}).catch(err => {
+  console.error('Failed to initialize database:', err.message);
 });
 
 // Connect routes
