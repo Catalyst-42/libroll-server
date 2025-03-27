@@ -23,6 +23,16 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok' });
 });
 
+app.get('/database-health', async (req, res) => {
+  try {
+    const db = getDb();
+    await db`SELECT 1`;  // Check connection to db
+    res.json({ status: 'ok' });
+  } catch (err) {
+    res.status(500).json({ status: 'error', error: err.message });
+  }
+});
+
 // Stats
 app.get('/stats', async (req, res) => {
   try {
