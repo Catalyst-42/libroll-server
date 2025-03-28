@@ -65,8 +65,9 @@ app.use('/users', userRoutes);
 app.use('/borrows', borrowRoutes);
 
 // Run server on local, or export for Vercel
-if (process.env.VERCEL == 'false' || process.env.LOCAL === undefined) {
-  const PORT = 5000;
+if (process.env.VERCEL !== 'true') {
+  const PORT = process.env.PORT || 5000;
+
   app.listen(PORT, () => {
     console.log(`Server is running on port ${PORT}`);
   });

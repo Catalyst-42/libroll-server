@@ -2,15 +2,19 @@ import postgres from 'postgres';
 
 let sql;
 
-const connectionString = process.env.LOCAL === 'true'
+const connectionString = (
+  process.env.LOCAL !== 'false'
   ? process.env.LOCAL_DATABASE_URL
-  : process.env.REMOTE_DATABASE_URL;
+  : process.env.REMOTE_DATABASE_URL
+);
 
 sql = postgres(connectionString, { 
-  ssl: process.env.LOCAL !== 'true'
+  ssl: process.env.LOCAL === 'false'
 });
 
-console.log(`Connected to the ${process.env.LOCAL === 'true' ? 'local' : 'remote'} PostgreSQL database`);
+console.log(`Connected to the ${
+  process.env.LOCAL !== 'false' ? 'local' : 'remote'
+} PostgreSQL database`);
 
 export const getDb = () => sql;
 
